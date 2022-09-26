@@ -8,6 +8,8 @@ import (
 
 type fork struct{ sync.Mutex }
 
+var host struct{ sync.Mutex }
+
 type philosopher struct {
 	id                  int
 	leftFork, rightFork *fork
@@ -18,26 +20,29 @@ type philosopher struct {
 // Adapt the pause values to increased or decrease contentions
 // around the forks.
 func (p philosopher) eat() {
+	
 	for j := 0; j < 2; j++ {
+		host.Lock()
 		p.leftFork.Lock()
 		p.rightFork.Lock()
 		time.Sleep(time.Second)
-		say("eating", p.id)
+		fmt.Println("Filosofo",p.id+1,"comiendo")
 		time.Sleep(time.Second)
 
 		p.rightFork.Unlock()
 		p.leftFork.Unlock()
+		host.Unlock()
 
-		say("finished eating", p.id)
+		fmt.Println("Filosofo",p.id+1,"termino de comer")
 		p.eaten+=1
 		time.Sleep(time.Second)
 	}
 	eatWgroup.Done()
 }
 
-func say(action string, id int) {
-	fmt.Printf("Philosopher #%d is %s\n", id+1, action)
-}
+
+
+
 
 var eatWgroup sync.WaitGroup
 
@@ -46,7 +51,8 @@ func main() {
 
 	count := 5
 
-	// Create forks
+	
+
 	forks := make([]*fork, count)
 	for i := 0; i < count; i++ {
 		forks[i] = new(fork)
@@ -64,3 +70,4 @@ func main() {
 	eatWgroup.Wait()
 
 }
+
